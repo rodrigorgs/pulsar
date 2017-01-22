@@ -46,6 +46,7 @@ function create() {
   game.add.existing(player);
   game.physics.p2.enable(player);
   player.body.damping = 0.9;
+  player.body.onBeginContact.add(Player.prototype.handleCollision, this); 
 
   // tower1 = new Tower(game, 100, 150, {x: 0.0, y: 0.0});
   // tower1.numBullets = 4;
@@ -116,11 +117,13 @@ function Player(game, x, y) {
   this.acceleration = 200;
   this.connectedBullet = null;
   this.vel = { x: 0, y: 0 };
-  this.slowDownFactor = 1.0 / 3;
 }
-
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;
+
+Player.prototype.handleCollision = function () {
+  console.log('hit!');
+}
 Player.prototype.onClick = function () {
   console.log('click');
   this.centerX = this.game.input.mousePointer.x;
@@ -177,7 +180,7 @@ function Tower(game, x, y, vel) {
   this.bullets = [];
   this.numBullets = 20;
   this.phase = 0;
-  this.bulletSpeed = 0.6;
+  this.bulletSpeed = 50;
   this.bulletDragPeriod = 1000;
   this.vel = vel;
 }
@@ -209,15 +212,21 @@ Tower.prototype.explode = function() {
   var angle, bullet, vel;
 
   for (angle = this.phase; angle < 2 * Math.PI + this.phase; angle += 2 * Math.PI / this.numBullets) {
-    vel = {
-      x: this.bulletSpeed * Math.cos(angle) + this.vel.x,
-      y: this.bulletSpeed * Math.sin(angle) + this.vel.y
-    };
+    // vel = {
+    //   x: this.bulletSpeed * Math.cos(angle) + this.vel.x * 5000,
+    //   y: this.bulletSpeed * Math.sin(angle) + this.vel.y * 5000
+    // };
     bullet = new TowerBullet(game, this.x, this.y, vel);
-    bullet.centerX = this.centerX;
-    bullet.centerY = this.centerY;
-    bullet.maxDragDuration = this.bulletDragPeriod;
-    this.bullets.push(bullet);
+    this.game.physics.p2.enable(bullet);
+    bullet.body.kinematic = true;
+    bullet.body.data.shapes[0].sensor = true;
+    bullet.body.x = this.centerX;
+    bullet.body.y = this.centerY;
+    bullet.body.velocity.x = this.bulletSpeed * Math.cos(angle) + this.vel.x;
+    bullet.body.velocity.y = this.bulletSpeed * Math.sin(angle) + this.vel.y;
+    // console.log(bullet.body.velocity);
+    // bullet.maxDragDuration = this.bulletDragPeriod;
+    // this.bullets.push(bullet);
     this.game.add.existing(bullet);
   }
 }
@@ -243,25 +252,25 @@ TowerBullet.prototype.isLifespanComplete = function () {
   return this.game.time.now - this.creationTime > this.lifespan;
 }
 TowerBullet.prototype.update = function () {
-  this.x += this.vel.x;
-  this.y += this.vel.y;
+  // this.x += this.vel.x;
+  // this.y += this.vel.y;
 
-  var shouldDestroy = false;
+  // var shouldDestroy = false;
 
-  if (Phaser.Rectangle.intersects(player.getBounds(), this.getBounds())) {
-    if (this.dragDuration == null) {
-      this.dragDuration = 0;
-    } else {
-      this.dragDuration += this.game.time.elapsedMS;
-    }
-  } else {
-    this.dragDuration = null;
-  }
-  shouldDestroy = (this.dragDuration > this.maxDragDuration) || 
-      this.isLifespanComplete() || this.isOutOfBounds();
+  // if (Phaser.Rectangle.intersects(player.getBounds(), this.getBounds())) {
+  //   if (this.dragDuration == null) {
+  //     this.dragDuration = 0;
+  //   } else {
+  //     this.dragDuration += this.game.time.elapsedMS;
+  //   }
+  // } else {
+  //   this.dragDuration = null;
+  // }
+  // shouldDestroy = (this.dragDuration > this.maxDragDuration) || 
+  //     this.isLifespanComplete() || this.isOutOfBounds();
 
-  if (shouldDestroy) {
-    this.destroy();
-  }
+  // if (shouldDestroy) {
+  //   this.destroy();
+  // }
 }
 
