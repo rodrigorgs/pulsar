@@ -43,7 +43,7 @@
   <object id="6" gid="235" x="254" y="105" width="21" height="21"/>
   <object id="7" gid="235" x="168" y="106" width="21" height="21">
    <properties>
-    <property name="numBullets" type="int" value="32"/>
+    <property name="numBullets" type="int" value="8"/>
    </properties>
   </object>
   <object id="8" name="player" gid="171" x="209" y="189" width="21" height="21"/>

@@ -57,6 +57,8 @@ Scene.Game.prototype = {
     }
     game.load.audio('explosion', 'assets/explosion.wav');
     game.load.audio('goal', 'assets/powerup12.wav');
+    game.load.audio('pickup', 'assets/pickup.wav');
+    game.load.audio('hit', 'assets/hit.wav');
 
     game.load.tilemap('fase' + this.params.level, 'assets/fase' + this.params.level + '.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.spritesheet('spritesheet', 'assets/spritesheet.png', 21, 21, -1, 2, 2);
@@ -66,6 +68,12 @@ Scene.Game.prototype = {
     game.load.image('bullet', 'assets/bullet.png');
 
     setas = game.input.keyboard.createCursorKeys();
+    wasd = {
+      W: game.input.keyboard.addKey(Phaser.Keyboard.W),
+      A: game.input.keyboard.addKey(Phaser.Keyboard.A),
+      S: game.input.keyboard.addKey(Phaser.Keyboard.S),
+      D: game.input.keyboard.addKey(Phaser.Keyboard.D)
+    };
     btnSlow = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
   },
 
@@ -78,6 +86,8 @@ Scene.Game.prototype = {
     }
     sndExplosion = game.add.audio('explosion');
     sndGoal = game.add.audio('goal');
+    sndPickup = game.add.audio('pickup');
+    sndHit = game.add.audio('hit');
 
     game.physics.startSystem(Phaser.Physics.P2JS);
     // game.physics.p2.gravity.y = 1000;
@@ -94,7 +104,7 @@ Scene.Game.prototype = {
     game.world.bringToTop(bulletGroup);
     game.world.bringToTop(player);
 
-    debug = game.add.text(0, 0, '', { fill: '#ffffff', fontSize: '8pt' });
+    debug = game.add.text(0, -999, '', { fill: '#ffffff', fontSize: '8pt' });
   },
 
   update: function () {
@@ -152,15 +162,15 @@ function Player(game, x, y) {
   Phaser.Sprite.call(this, game, x, y, 'player');
   // this.frame = 171 - 1;
   
-  this.slowDownFactor = 1.0 / 3;
+  this.slowDownFactor = 0.5;
 
   game.physics.p2.enable(this);
-  this.body.damping = 0.9;
+  this.body.damping = 1.0;
   this.body.onBeginContact.add(this.handleCollision, this); 
   this.body.fixedRotation = true;
 
-  this.speed = 1.5 * 50;
-  this.acceleration = 200;
+  // this.speed = 1.5 * 50;
+  this.acceleration = 5000;
   this.connectedBullet = null;
   this.vel = { x: 0, y: 0 };
 }
@@ -170,8 +180,10 @@ Player.prototype.constructor = Player;
 Player.prototype.handleCollision = function (bodyB, shapeA, shapeB, equation) {
   var key = bodyB && bodyB.sprite ? bodyB.sprite.key : null;
   if (key == 'tower') {
+    sndPickup.play();
     bodyB.sprite.destroy();
   } else if (key == 'bullet') {
+    sndHit.play();
     this.game.state.getCurrentState().restartLevel();
     bodyB.sprite.destroy();
   }
@@ -189,23 +201,6 @@ Player.prototype.update = function () {
   this.handleInput();
 
   debug.text += this.body.velocity.x.toFixed(1) + ", " + this.body.velocity.y.toFixed(1);
-
-  // this.x += this.vel.x;
-  // this.y += this.vel.y;
-
-  // if (this.connectedBullet) {
-  //   var product = this.vel.x * this.connectedBullet.vel.x +
-  //       this.vel.y * this.connectedBullet.vel.y;
-  //   var movingAway = product > 0.4;
-  //   debug.text += product.toFixed(2);
-  //   if (movingAway) {
-  //     // this.connectedBullet.destroy();
-  //     // this.connectedBullet = null;
-  //   } else {
-  //     this.centerX = this.connectedBullet.centerX;
-  //     this.centerY = this.connectedBullet.centerY;
-  //   }
-  // }
 }
 Player.prototype.handleInput = function () {
   this.body.force.x = 0;
@@ -213,16 +208,16 @@ Player.prototype.handleInput = function () {
 
   var curSpeed = this.acceleration * (btnSlow.isDown ? this.slowDownFactor : 1.0);
 
-  if (setas.right.isDown) {
+  if (setas.right.isDown || wasd.D.isDown) {
     this.body.force.x += curSpeed;
   }
-  if (setas.left.isDown) {
+  if (setas.left.isDown || wasd.A.isDown) {
     this.body.force.x -= curSpeed;
   }
-  if (setas.up.isDown) {
+  if (setas.up.isDown || wasd.W.isDown) {
     this.body.force.y -= curSpeed;
   }
-  if (setas.down.isDown) {
+  if (setas.down.isDown || wasd.S.isDown) {
     this.body.force.y += curSpeed;
   }
 }
@@ -231,12 +226,16 @@ Player.prototype.handleInput = function () {
 
 function Tower(game, x, y, vel) {
   Phaser.Sprite.call(this, game, x, y, 'tower');
-  this.timeLastExplosion = -999999;
+  this.timeLastExplosion = this.game.time.now;
+  this.firstExplosion = true;
+  this.started = false;
   this.period = 2000;
   this.bullets = [];
   this.numBullets = 20;
-  this.phase = 0;
+  this.phase = 0; // degrees
   this.bulletSpeed = 50;
+  this.bulletLifespan = 3000;
+  this.delay = 0;
   this.vel = vel;
 
   this.game.physics.p2.enable(this);
@@ -248,6 +247,10 @@ function Tower(game, x, y, vel) {
 Tower.prototype = Object.create(Phaser.Sprite.prototype);
 Tower.prototype.constructor = Tower;
 Tower.prototype.update = function () {
+  if (!this.started) {
+    this.started = true;
+    this.timeLastExplosion = this.game.time.now;
+  }
   this.x += this.vel.x;
   this.y += this.vel.y;
 
@@ -263,20 +266,32 @@ Tower.prototype.update = function () {
   }
 
   var now = this.game.time.now;
-  if (now - this.timeLastExplosion > this.period) {
+  // console.log(now - this.timeLastExplosion, this.delay);
+
+  if (this.firstExplosion && now - this.timeLastExplosion > this.delay) {
+    // console.log(now - this.timeLastExplosion, this.delay);
+    console.log('first');
+    this.timeLastExplosion = now;
+    this.explode();
+    this.firstExplosion = false;
+  }
+  if (!this.firstExplosion && now - this.timeLastExplosion > this.period) {
+    console.log('next');
     this.timeLastExplosion = now;
     this.explode();
   }
 }
 Tower.prototype.explode = function() {
   var angle, bullet, vel;
+  var phaseRadians = Math.PI * this.phase / 180.0;
 
-  for (angle = this.phase; angle < 2 * Math.PI + this.phase; angle += 2 * Math.PI / this.numBullets) {
+  for (angle = phaseRadians; angle < 2 * Math.PI + phaseRadians; angle += 2.0 * Math.PI / this.numBullets) {
     vel = {
       x: this.bulletSpeed * Math.cos(angle) + this.vel.x,
       y: this.bulletSpeed * Math.sin(angle) + this.vel.y
     };
     bullet = new TowerBullet(game, this.centerX, this.centerY, vel);
+    bullet.lifespan = this.bulletLifespan;
     bulletGroup.add(bullet);
   }
 
@@ -290,8 +305,6 @@ function TowerBullet(game, x, y, vel) {
   this.vel = vel;
   this.lifespan = 6000;
   this.creationTime = this.game.time.now;
-  this.dragDuration = null;
-  this.maxDragDuration = 999999999; //500;
 
   this.game.physics.p2.enable(this);
   this.body.category = 'bullet'

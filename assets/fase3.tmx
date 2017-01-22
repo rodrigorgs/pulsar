@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="19" height="14" tilewidth="21" tileheight="21" nextobjectid="18">
+ <tileset firstgid="1" name="spritesheet" tilewidth="21" tileheight="21" spacing="2" margin="2" tilecount="900" columns="30">
+  <image source="spritesheet.png" width="692" height="692"/>
+ </tileset>
+ <layer name="frente" width="19" height="14">
+  <data encoding="csv">
+191,191,191,191,191,191,191,191,191,191,191,191,191,191,191,191,191,191,191,
+191,200,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,
+191,191,191,191,191,191,191,191,191,191,191,191,191,191,191,191,191,0,191,
+191,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,0,191,
+191,0,0,191,191,191,191,191,191,191,191,191,191,191,0,0,191,0,191,
+191,0,0,191,200,200,200,0,0,0,0,0,191,191,0,0,191,200,191,
+191,0,0,191,0,0,0,0,0,0,0,0,191,191,0,0,191,200,191,
+191,0,0,191,0,0,0,0,0,0,0,0,191,191,0,0,191,200,191,
+191,0,0,191,191,191,191,191,191,191,191,191,0,191,0,0,191,200,191,
+191,0,0,0,0,0,0,0,0,191,0,191,0,191,0,0,191,200,191,
+191,191,191,191,191,191,191,191,0,191,0,191,0,191,0,0,191,0,191,
+191,0,0,0,0,0,0,0,0,191,0,191,0,191,0,0,191,0,191,
+191,0,0,0,0,0,0,0,0,191,0,191,0,191,0,0,191,0,191,
+191,191,191,191,191,191,191,191,191,191,191,191,191,191,191,191,191,191,191
+</data>
+ </layer>
+ <layer name="fundo" width="19" height="14">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup name="Objetos">
+  <object id="7" gid="235" x="103" y="210" width="21" height="21">
+   <properties>
+    <property name="numBullet" type="float" value="6"/>
+    <property name="phase" type="float" value="30"/>
+   </properties>
+  </object>
+  <object id="8" name="player" gid="171" x="22" y="272" width="21" height="21"/>
+  <object id="10" gid="311" x="306" y="264" width="21" height="21"/>
+  <object id="13" gid="235" x="84" y="42" width="21" height="21">
+   <properties>
+    <property name="phase" type="float" value="22.5"/>
+   </properties>
+  </object>
+  <object id="14" gid="235" x="357" y="168" width="21" height="21">
+   <properties>
+    <property name="delay" type="float" value="1000"/>
+    <property name="phase" type="float" value="22.5"/>
+   </properties>
+  </object>
+  <object id="15" gid="235" x="357" y="210" width="21" height="21">
+   <properties>
+    <property name="phase" type="float" value="22.5"/>
+   </properties>
+  </object>
+  <object id="16" gid="235" x="357" y="126" width="21" height="21">
+   <properties>
+    <property name="phase" type="float" value="22.5"/>
+   </properties>
+  </object>
+  <object id="17" gid="235" x="147" y="42" width="21" height="21">
+   <properties>
+    <property name="phase" type="float" value="22.5"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>
