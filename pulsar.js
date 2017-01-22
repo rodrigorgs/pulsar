@@ -44,9 +44,6 @@ function create() {
 
   player = new Player(game, 200, 200);
   game.add.existing(player);
-  game.physics.p2.enable(player);
-  player.body.damping = 0.9;
-  player.body.onBeginContact.add(Player.prototype.handleCollision, this); 
 
   // tower1 = new Tower(game, 100, 150, {x: 0.0, y: 0.0});
   // tower1.numBullets = 4;
@@ -113,6 +110,11 @@ function checkCollisionWithTowers() {
 
 function Player(game, x, y) {
   Phaser.Sprite.call(this, game, x, y, 'player');
+  
+  game.physics.p2.enable(this);
+  this.body.damping = 0.9;
+  this.body.onBeginContact.add(Player.prototype.handleCollision, this); 
+
   this.speed = 1.5 * 50;
   this.acceleration = 200;
   this.connectedBullet = null;
@@ -212,18 +214,11 @@ Tower.prototype.explode = function() {
   var angle, bullet, vel;
 
   for (angle = this.phase; angle < 2 * Math.PI + this.phase; angle += 2 * Math.PI / this.numBullets) {
-    // vel = {
-    //   x: this.bulletSpeed * Math.cos(angle) + this.vel.x * 5000,
-    //   y: this.bulletSpeed * Math.sin(angle) + this.vel.y * 5000
-    // };
-    bullet = new TowerBullet(game, this.x, this.y, vel);
-    this.game.physics.p2.enable(bullet);
-    bullet.body.kinematic = true;
-    bullet.body.data.shapes[0].sensor = true;
-    bullet.body.x = this.centerX;
-    bullet.body.y = this.centerY;
-    bullet.body.velocity.x = this.bulletSpeed * Math.cos(angle) + this.vel.x;
-    bullet.body.velocity.y = this.bulletSpeed * Math.sin(angle) + this.vel.y;
+    vel = {
+      x: this.bulletSpeed * Math.cos(angle) + this.vel.x,
+      y: this.bulletSpeed * Math.sin(angle) + this.vel.y
+    };
+    bullet = new TowerBullet(game, this.centerX, this.centerY, vel);
     // console.log(bullet.body.velocity);
     // bullet.maxDragDuration = this.bulletDragPeriod;
     // this.bullets.push(bullet);
@@ -240,6 +235,14 @@ function TowerBullet(game, x, y, vel) {
   this.creationTime = this.game.time.now;
   this.dragDuration = null;
   this.maxDragDuration = 999999999; //500;
+
+  this.game.physics.p2.enable(this);
+  this.body.kinematic = true;
+  this.body.data.shapes[0].sensor = true;
+  this.body.x = x;
+  this.body.y = y;
+  this.body.velocity.x = vel.x;
+  this.body.velocity.y = vel.y;
 }
 TowerBullet.prototype = Object.create(Phaser.Sprite.prototype);
 TowerBullet.prototype.constructor = TowerBullet;
