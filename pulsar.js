@@ -51,7 +51,6 @@ Scene.Game.prototype = {
 
   preload: function () {
     if (!window.music) {
-      console.log('load music');
       game.load.audio('music', 'assets/music.mp3');
     }
 
@@ -68,7 +67,6 @@ Scene.Game.prototype = {
 
   create: function () {
     // music.play();
-    // console.log(music);
     if (!window.music) {
       music = game.add.audio('music', 1, true);
       music.play();
@@ -107,7 +105,6 @@ Scene.Game.prototype = {
     game.physics.p2.convertTilemap(map, 'frente');
 
     map.objects.Objetos.forEach(function (obj) {
-      console.log(obj.gid);
       obj.y -= 21;
       if (obj.gid == FRAMES.PLAYER) { // player
         player = new Player(game, obj.x + 10, obj.y + 10);
@@ -118,6 +115,12 @@ Scene.Game.prototype = {
         tower.numBullets = 8;
         tower.timeLastExplosion = game.time.now - tower.period / 2;
         towerGroup.add(tower);
+        gtower = obj; // debug
+        if (obj.properties) {
+          for (var k in obj.properties) {
+            tower[k] = obj.properties[k];
+          }
+        }
       } else if (obj.gid == FRAMES.GOAL) { //goal
         var goal = game.add.sprite(obj.x + 10, obj.y + 10, 'spritesheet');
         goal.frame = FRAMES.GOAL - 1;
@@ -153,7 +156,6 @@ Player.prototype.constructor = Player;
 
 Player.prototype.handleCollision = function (bodyB, shapeA, shapeB, equation) {
   var key = bodyB && bodyB.sprite ? bodyB.sprite.key : null;
-  console.log(bodyB.category)
   if (key == 'tower') {
     bodyB.sprite.destroy();
   } else if (key == 'bullet') {
@@ -162,13 +164,10 @@ Player.prototype.handleCollision = function (bodyB, shapeA, shapeB, equation) {
   }
 
   if (bodyB.category == 'goal') {
-    console.log('GOAL!');
-    // game.state.start('game', true, false, {level: this.params.level + 1});
     game.state.getCurrentState().nextLevel();
   }
 }
 Player.prototype.onClick = function () {
-  console.log('click');
   this.centerX = this.game.input.mousePointer.x;
   this.centerY = this.game.input.mousePointer.y;
 }
@@ -224,7 +223,6 @@ function Tower(game, x, y, vel) {
   this.numBullets = 20;
   this.phase = 0;
   this.bulletSpeed = 50;
-  this.bulletDragPeriod = 1000;
   this.vel = vel;
 
   this.game.physics.p2.enable(this);
@@ -265,9 +263,6 @@ Tower.prototype.explode = function() {
       y: this.bulletSpeed * Math.sin(angle) + this.vel.y
     };
     bullet = new TowerBullet(game, this.centerX, this.centerY, vel);
-    // console.log(bullet.body.velocity);
-    // bullet.maxDragDuration = this.bulletDragPeriod;
-    // this.bullets.push(bullet);
     bulletGroup.add(bullet);
   }
 }
@@ -302,26 +297,6 @@ TowerBullet.prototype.isLifespanComplete = function () {
   return this.game.time.now - this.creationTime > this.lifespan;
 }
 TowerBullet.prototype.update = function () {
-  // this.x += this.vel.x;
-  // this.y += this.vel.y;
-
-  // var shouldDestroy = false;
-
-  // if (Phaser.Rectangle.intersects(player.getBounds(), this.getBounds())) {
-  //   if (this.dragDuration == null) {
-  //     this.dragDuration = 0;
-  //   } else {
-  //     this.dragDuration += this.game.time.elapsedMS;
-  //   }
-  // } else {
-  //   this.dragDuration = null;
-  // }
-  // shouldDestroy = (this.dragDuration > this.maxDragDuration) || 
-  //     this.isLifespanComplete() || this.isOutOfBounds();
-
-  // if (shouldDestroy) {
-  //   this.destroy();
-  // }
 }
 
 /////////////////////////////////////////////////////////
