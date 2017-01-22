@@ -35,12 +35,17 @@ function createTilemap() {
 
 function create() {
   game.physics.startSystem(Phaser.Physics.P2JS);
+  // game.physics.p2.gravity.y = 1000;
+  game.physics.p2.restitution = 0.1;
+
+
 
   createTilemap();
 
   player = new Player(game, 200, 200);
   game.add.existing(player);
-  // game.physics.p2.enable(player);
+  game.physics.p2.enable(player);
+  player.body.damping = 0.9;
 
   // tower1 = new Tower(game, 100, 150, {x: 0.0, y: 0.0});
   // tower1.numBullets = 4;
@@ -63,12 +68,12 @@ function create() {
   game.add.existing(tower4);
 
 
-  debug = game.add.text(0, 0, '', { fill: '#ffffffff' });
+  debug = game.add.text(0, 0, '', { fill: '#ffffff', fontSize: '8pt' });
   // this.game.input.mouse.capture = true;
 }
 
 function update() {
-  debug.text = '';
+  debug.text = 'DEBUG: ';
   checkCollisionWithBullets();
   checkCollisionWithTowers();
 }
@@ -107,12 +112,11 @@ function checkCollisionWithTowers() {
 
 function Player(game, x, y) {
   Phaser.Sprite.call(this, game, x, y, 'player');
-  this.speed = 1.5;
+  this.speed = 1.5 * 50;
+  this.acceleration = 200;
   this.connectedBullet = null;
   this.vel = { x: 0, y: 0 };
   this.slowDownFactor = 1.0 / 3;
-  // this.game.input.mousePointer.leftButton.isDown
-  // isDown isDown.add(this.onClick, this)
 }
 
 Player.prototype = Object.create(Phaser.Sprite.prototype);
@@ -124,47 +128,44 @@ Player.prototype.onClick = function () {
 }
 Player.prototype.update = function () {
   this.handleInput();
-  this.x += this.vel.x;
-  this.y += this.vel.y;
 
-  if (this.connectedBullet) {
-    var product = this.vel.x * this.connectedBullet.vel.x +
-        this.vel.y * this.connectedBullet.vel.y;
-    var movingAway = product > 0.4;
-    debug.text += product.toFixed(2);
-    if (movingAway) {
-      // this.connectedBullet.destroy();
-      // this.connectedBullet = null;
-    } else {
-      this.centerX = this.connectedBullet.centerX;
-      this.centerY = this.connectedBullet.centerY;
-    }
-  }
+  debug.text += this.body.velocity.x.toFixed(1) + ", " + this.body.velocity.y.toFixed(1);
+
+  // this.x += this.vel.x;
+  // this.y += this.vel.y;
+
+  // if (this.connectedBullet) {
+  //   var product = this.vel.x * this.connectedBullet.vel.x +
+  //       this.vel.y * this.connectedBullet.vel.y;
+  //   var movingAway = product > 0.4;
+  //   debug.text += product.toFixed(2);
+  //   if (movingAway) {
+  //     // this.connectedBullet.destroy();
+  //     // this.connectedBullet = null;
+  //   } else {
+  //     this.centerX = this.connectedBullet.centerX;
+  //     this.centerY = this.connectedBullet.centerY;
+  //   }
+  // }
 }
 Player.prototype.handleInput = function () {
-  this.vel.x = 0;
-  this.vel.y = 0;
+  this.body.force.x = 0;
+  this.body.force.y = 0;
 
-  var curSpeed = this.speed * (btnSlow.isDown ? this.slowDownFactor : 1.0);
+  var curSpeed = this.acceleration * (btnSlow.isDown ? this.slowDownFactor : 1.0);
 
   if (setas.right.isDown) {
-    this.vel.x += curSpeed;
+    this.body.force.x += curSpeed;
   }
   if (setas.left.isDown) {
-    this.vel.x -= curSpeed;
+    this.body.force.x -= curSpeed;
   }
   if (setas.up.isDown) {
-    this.vel.y -= curSpeed;
+    this.body.force.y -= curSpeed;
   }
   if (setas.down.isDown) {
-    this.vel.y += curSpeed;
+    this.body.force.y += curSpeed;
   }
-
-  // uncomment to enable mouse mode
-  // if (this.game.input.mousePointer.leftButton.isDown) {
-  //   this.x = this.game.input.mousePointer.x;
-  //   this.y = this.game.input.mousePointer.y;
-  // }
 }
 
 ///////
@@ -197,7 +198,6 @@ Tower.prototype.update = function () {
   } else if (this.y < 0) {
     this.vel.y = -this.vel.y;
   }
-  
 
   var now = this.game.time.now;
   if (now - this.timeLastExplosion > this.period) {
