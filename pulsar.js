@@ -295,7 +295,7 @@ Tower.prototype.explode = function() {
     bulletGroup.add(bullet);
   }
 
-  sndExplosion.play();
+  // sndExplosion.play();
 }
 
 ////////
