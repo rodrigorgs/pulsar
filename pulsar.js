@@ -8,6 +8,12 @@
 // - TODO: Ride the bullet to become closer of the targets
 // - When the player is caught, she can deattach by moving away from the bullet
 
+FRAMES = {
+  PLAYER: 171,
+  TOWER: 235,
+  GOAL: 311
+};
+
 var game = new Phaser.Game(400, 300, Phaser.AUTO, 'fubajam17', { preload: preload, create: create, update: update });
 
 function preload() {
@@ -32,6 +38,28 @@ function createTilemap() {
 
   map.setCollisionBetween(1, 899);
   game.physics.p2.convertTilemap(map, 'frente');
+
+  map.objects.Objetos.forEach(function (obj) {
+    console.log(obj.gid);
+    obj.y -= 21;
+    if (obj.gid == FRAMES.PLAYER) { // player
+      player = new Player(game, obj.x + 10, obj.y + 10);
+      game.add.existing(player);
+    } else if (obj.gid == FRAMES.TOWER) { // tower
+      var tower;
+      tower = new Tower(game, obj.x + 10, obj.y + 10, {x: 0.0, y: 0.0});
+      tower.numBullets = 8;
+      tower.timeLastExplosion = game.time.now - tower.period / 2;
+      towerGroup.add(tower);
+    } else if (obj.gid == FRAMES.GOAL) { //goal
+      var goal = game.add.sprite(obj.x + 10, obj.y + 10, 'spritesheet');
+      goal.frame = FRAMES.GOAL - 1;
+      game.physics.p2.enable(goal);
+      goal.body.category = 'goal';
+      goal.body.kinematic = true;
+      goal.body.data.shapes[0].sensor = true;
+    }
+  });
 }
 
 function create() {
@@ -44,8 +72,8 @@ function create() {
 
   createTilemap();
 
-  player = new Player(game, 200, 200);
-  game.add.existing(player);
+  // player = new Player(game, 200, 200);
+  // game.add.existing(player);
 
   // tower1 = new Tower(game, 100, 150, {x: 0.0, y: 0.0});
   // tower1.numBullets = 4;
@@ -57,15 +85,15 @@ function create() {
   // tower2.phase = Math.PI / 8;
   // game.add.existing(tower2);
 
-  tower3 = new Tower(game, 230, 150, {x: 0.0, y: 0.0});
-  tower3.numBullets = 8;
-  tower3.timeLastExplosion = game.time.now - tower3.period / 2;
-  towerGroup.add(tower3);
+  // tower3 = new Tower(game, 230, 150, {x: 0.0, y: 0.0});
+  // tower3.numBullets = 8;
+  // tower3.timeLastExplosion = game.time.now - tower3.period / 2;
+  // towerGroup.add(tower3);
 
-  tower4 = new Tower(game, 300, 150, {x: 0.0, y: 0.0});
-  tower4.numBullets = 8;
-  tower4.timeLastExplosion = game.time.now - tower4.period / 2;
-  towerGroup.add(tower4);
+  // tower4 = new Tower(game, 300, 150, {x: 0.0, y: 0.0});
+  // tower4.numBullets = 8;
+  // tower4.timeLastExplosion = game.time.now - tower4.period / 2;
+  // towerGroup.add(tower4);
 
 
   debug = game.add.text(0, 0, '', { fill: '#ffffff', fontSize: '8pt' });
@@ -112,6 +140,7 @@ function checkCollisionWithTowers() {
 
 function Player(game, x, y) {
   Phaser.Sprite.call(this, game, x, y, 'player');
+  // this.frame = 171 - 1;
   
   game.physics.p2.enable(this);
   this.body.damping = 0.9;
@@ -127,14 +156,16 @@ Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;
 
 Player.prototype.handleCollision = function (bodyB, shapeA, shapeB, equation) {
-  var key = bodyB.sprite ? bodyB.sprite.key : null;
-
+  var key = bodyB && bodyB.sprite ? bodyB.sprite.key : null;
+  console.log(bodyB.category)
   if (key == 'tower') {
-    console.log('hit tower!');
     bodyB.sprite.destroy();
   } else if (key == 'bullet') {
-    console.log('hit bullet!');
     bodyB.sprite.destroy();
+  }
+
+  if (bodyB.category == 'goal') {
+    console.log('GOAL!');
   }
 }
 Player.prototype.onClick = function () {
@@ -187,7 +218,7 @@ Player.prototype.handleInput = function () {
 ///////
 
 function Tower(game, x, y, vel) {
-  Phaser.Sprite.call(this, game, x, y, 'tower');  
+  Phaser.Sprite.call(this, game, x, y, 'tower');
   this.timeLastExplosion = -999999;
   this.period = 2000;
   this.bullets = [];
