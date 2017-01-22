@@ -30,6 +30,7 @@ function createTilemap() {
   layerFundo = map.createLayer('fundo');
   layerFrente = map.createLayer('frente');
 
+  map.setCollisionBetween(1, 899);
   game.physics.p2.convertTilemap(map, 'frente');
 }
 
@@ -115,6 +116,7 @@ function Player(game, x, y) {
   game.physics.p2.enable(this);
   this.body.damping = 0.9;
   this.body.onBeginContact.add(this.handleCollision, this); 
+  this.body.fixedRotation = true;
 
   this.speed = 1.5 * 50;
   this.acceleration = 200;
@@ -125,10 +127,12 @@ Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;
 
 Player.prototype.handleCollision = function (bodyB, shapeA, shapeB, equation) {
-  if (bodyB.sprite.key == 'tower') {
+  var key = bodyB.sprite ? bodyB.sprite.key : null;
+
+  if (key == 'tower') {
     console.log('hit tower!');
     bodyB.sprite.destroy();
-  } else if (bodyB.sprite.key == 'bullet') {
+  } else if (key == 'bullet') {
     console.log('hit bullet!');
     bodyB.sprite.destroy();
   }
