@@ -81,6 +81,12 @@ Scene.Game.prototype = {
 
     this.createTilemap();
 
+    game.world.bringToTop(layerFundo);
+    game.world.bringToTop(towerGroup);
+    game.world.bringToTop(layerFrente);
+    game.world.bringToTop(bulletGroup);
+    game.world.bringToTop(player);
+
     debug = game.add.text(0, 0, '', { fill: '#ffffff', fontSize: '8pt' });
   },
 
