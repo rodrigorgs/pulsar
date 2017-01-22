@@ -16,6 +16,8 @@ FRAMES = {
   GOAL: 311
 };
 
+started = false;
+
 Scene = {};
 
 Scene.Win = function () {
@@ -50,9 +52,11 @@ Scene.Game.prototype = {
   },
 
   preload: function () {
-    if (!window.music) {
+    if (!started) {
       game.load.audio('music', 'assets/music.mp3');
     }
+    game.load.audio('explosion', 'assets/explosion.wav');
+    game.load.audio('goal', 'assets/powerup12.wav');
 
     game.load.tilemap('fase' + this.params.level, 'assets/fase' + this.params.level + '.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.spritesheet('spritesheet', 'assets/spritesheet.png', 21, 21, -1, 2, 2);
@@ -67,10 +71,13 @@ Scene.Game.prototype = {
 
   create: function () {
     // music.play();
-    if (!window.music) {
+    if (!started) {
       music = game.add.audio('music', 1, true);
       music.play();
+      started = true;
     }
+    sndExplosion = game.add.audio('explosion');
+    sndGoal = game.add.audio('goal');
 
     game.physics.startSystem(Phaser.Physics.P2JS);
     // game.physics.p2.gravity.y = 1000;
@@ -171,6 +178,7 @@ Player.prototype.handleCollision = function (bodyB, shapeA, shapeB, equation) {
 
   if (bodyB.category == 'goal') {
     game.state.getCurrentState().nextLevel();
+    sndGoal.play();
   }
 }
 Player.prototype.onClick = function () {
@@ -271,6 +279,8 @@ Tower.prototype.explode = function() {
     bullet = new TowerBullet(game, this.centerX, this.centerY, vel);
     bulletGroup.add(bullet);
   }
+
+  sndExplosion.play();
 }
 
 ////////
