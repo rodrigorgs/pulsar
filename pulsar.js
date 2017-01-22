@@ -11,6 +11,10 @@
 var game = new Phaser.Game(400, 300, Phaser.AUTO, 'fubajam17', { preload: preload, create: create, update: update });
 
 function preload() {
+  game.load.tilemap('fase1', 'assets/fase1.json', null, Phaser.Tilemap.TILED_JSON);
+  game.load.spritesheet('spritesheet', 'assets/spritesheet.png', 21, 21, -1, 2, 2);
+
+
   game.load.image('player', 'assets/player.png');
   game.load.image('tower', 'assets/tower.png');
   game.load.image('bullet', 'assets/bullet.png');
@@ -19,9 +23,24 @@ function preload() {
   btnSlow = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 }
 
+function createTilemap() {
+  map = game.add.tilemap('fase1');
+  map.addTilesetImage('spritesheet', 'spritesheet');
+
+  layerFundo = map.createLayer('fundo');
+  layerFrente = map.createLayer('frente');
+
+  game.physics.p2.convertTilemap(map, 'frente');
+}
+
 function create() {
+  game.physics.startSystem(Phaser.Physics.P2JS);
+
+  createTilemap();
+
   player = new Player(game, 200, 200);
   game.add.existing(player);
+  // game.physics.p2.enable(player);
 
   // tower1 = new Tower(game, 100, 150, {x: 0.0, y: 0.0});
   // tower1.numBullets = 4;
