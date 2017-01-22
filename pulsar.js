@@ -8,6 +8,8 @@
 // - TODO: Ride the bullet to become closer of the targets
 // - When the player is caught, she can deattach by moving away from the bullet
 
+FIRST_LEVEL = 1;
+
 FRAMES = {
   PLAYER: 171,
   TOWER: 235,
@@ -16,13 +18,45 @@ FRAMES = {
 
 Scene = {};
 
+Scene.Win = function () {
+};
+Scene.Win.prototype = {
+  init: function (params) {
+    this.params = params;
+  },
+
+  create: function () {
+    var text = game.add.text(0.5, 0.5, 'You won!', { fill: '#ffffff', fontSize: '20pt' });
+    text.anchor.x = 0.5;
+    text.anchor.y = 0.5;
+    text.x = game.canvas.width / 2;
+    text.y = game.canvas.height / 2;
+  },
+};
+
 Scene.Game = function () {
 };
 Scene.Game.prototype = {
-  preload: function () {
-    game.load.tilemap('fase1', 'assets/fase1.json', null, Phaser.Tilemap.TILED_JSON);
-    game.load.spritesheet('spritesheet', 'assets/spritesheet.png', 21, 21, -1, 2, 2);
+  init: function (params) {
+    this.params = params;
+  },
 
+  nextLevel: function () {
+    game.state.start('game', true, false, {level: this.params.level + 1});
+  },
+
+  restartLevel: function () {
+    game.state.start('game', true, false, {level: this.params.level});
+  },
+
+  preload: function () {
+    if (!window.music) {
+      console.log('load music');
+      game.load.audio('music', 'assets/music.mp3');
+    }
+
+    game.load.tilemap('fase' + this.params.level, 'assets/fase' + this.params.level + '.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.spritesheet('spritesheet', 'assets/spritesheet.png', 21, 21, -1, 2, 2);
 
     game.load.image('player', 'assets/player.png');
     game.load.image('tower', 'assets/tower.png');
@@ -33,6 +67,13 @@ Scene.Game.prototype = {
   },
 
   create: function () {
+    // music.play();
+    // console.log(music);
+    if (!window.music) {
+      music = game.add.audio('music', 1, true);
+      music.play();
+    }
+
     game.physics.startSystem(Phaser.Physics.P2JS);
     // game.physics.p2.gravity.y = 1000;
     game.physics.p2.restitution = 0.1;
@@ -50,7 +91,13 @@ Scene.Game.prototype = {
   },
 
   createTilemap: function () {
-    map = game.add.tilemap('fase1');
+    try {
+      map = game.add.tilemap('fase' + this.params.level);
+    } catch (e) {
+      game.state.start('win', true, false);
+      return;
+    }
+
     map.addTilesetImage('spritesheet', 'spritesheet');
 
     layerFundo = map.createLayer('fundo');
@@ -89,6 +136,8 @@ function Player(game, x, y) {
   Phaser.Sprite.call(this, game, x, y, 'player');
   // this.frame = 171 - 1;
   
+  this.slowDownFactor = 1.0 / 3;
+
   game.physics.p2.enable(this);
   this.body.damping = 0.9;
   this.body.onBeginContact.add(this.handleCollision, this); 
@@ -108,11 +157,14 @@ Player.prototype.handleCollision = function (bodyB, shapeA, shapeB, equation) {
   if (key == 'tower') {
     bodyB.sprite.destroy();
   } else if (key == 'bullet') {
+    this.game.state.getCurrentState().restartLevel();
     bodyB.sprite.destroy();
   }
 
   if (bodyB.category == 'goal') {
     console.log('GOAL!');
+    // game.state.start('game', true, false, {level: this.params.level + 1});
+    game.state.getCurrentState().nextLevel();
   }
 }
 Player.prototype.onClick = function () {
@@ -277,4 +329,7 @@ TowerBullet.prototype.update = function () {
 var game = new Phaser.Game(400, 300, Phaser.AUTO, '');
 // game.state.add('menu', Scene.Menu);
 game.state.add('game', Scene.Game);
-game.state.start('game');
+game.state.add('win', Scene.Win);
+game.state.start('game', true, false, {level: FIRST_LEVEL});
+
+
