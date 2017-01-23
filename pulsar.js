@@ -54,6 +54,8 @@ Scene.Game.prototype = {
   preload: function () {
     if (!started) {
       game.load.audio('music', 'assets/music.mp3');
+      game.scale.setupScale(800, 600);
+      game.scale.refresh();
     }
     game.load.audio('explosion', 'assets/explosion.wav');
     game.load.audio('goal', 'assets/powerup12.wav');
@@ -270,13 +272,11 @@ Tower.prototype.update = function () {
 
   if (this.firstExplosion && now - this.timeLastExplosion > this.delay) {
     // console.log(now - this.timeLastExplosion, this.delay);
-    console.log('first');
     this.timeLastExplosion = now;
     this.explode();
     this.firstExplosion = false;
   }
   if (!this.firstExplosion && now - this.timeLastExplosion > this.period) {
-    console.log('next');
     this.timeLastExplosion = now;
     this.explode();
   }
@@ -330,10 +330,8 @@ TowerBullet.prototype.update = function () {
 
 /////////////////////////////////////////////////////////
 
-var game = new Phaser.Game(400, 300, Phaser.AUTO, '');
+var game = new Phaser.Game(400, 300, Phaser.AUTO, 'gamecanvas');
 // game.state.add('menu', Scene.Menu);
 game.state.add('game', Scene.Game);
 game.state.add('win', Scene.Win);
 game.state.start('game', true, false, {level: FIRST_LEVEL});
-
-
